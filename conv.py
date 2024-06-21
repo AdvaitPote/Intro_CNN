@@ -14,6 +14,7 @@ class Conv3x3:
                 yield im_region, i, j
 
     def forward(self, input):
+        self.last_input = input
         h, w = input.shape
         output = np.zeros((h-2, w-2, self.num_filters))
 
@@ -22,3 +23,13 @@ class Conv3x3:
 
         return output
     
+    def backward(self, d_L_d_out, learning_rate):
+        d_L_d_filters = np.zeros(self.filters.shape)
+
+        for im_region, i, j in self.iterate_regions(self.last_input):
+            for f in range(self.num_filters):
+                d_L_d_filters[f] += d_L_d_out[i, j, f] * im_region
+
+        self.filters -= learning_rate * d_L_d_filters
+        
+        return None 
